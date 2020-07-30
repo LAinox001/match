@@ -1,3 +1,10 @@
 import './admin-user';
 import './profile-edit-profile';
 import './profile-edit-password';
+import './filliere';
+import './plat';
+import './couleur';
+import './animal';
+import './etudiant';
+import './parrain';
+import './match/Form.js';
