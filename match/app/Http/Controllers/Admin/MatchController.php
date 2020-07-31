@@ -39,82 +39,8 @@ class MatchController extends Controller
         }
 
         $couples = $this->matchTogether($etudiants, $parrains);
-        // dd($couples);
+        // dd(count($couples));
         return view('admin.match.match')->with(['couples' => $couples]);
-
-        // $couples = [];
-        // $count_couples = 0;
-
-        // foreach($etudiants as $etudiant){
-        //     $best_parrain = [
-        //         'Prénom' => null,
-        //         'Nom' => null,
-        //         'count_same' => 0
-        //     ];
-        //     $count_same = 0;
-        //     $attributes_etudiant = $etudiant->getAttributes();
-        //     unset($attributes_etudiant['id']);
-        //     unset($attributes_etudiant['created_at']);
-        //     unset($attributes_etudiant['updated_at']);
-        //     unset($attributes_etudiant['prenom']);
-        //     unset($attributes_etudiant['nom']);
-
-
-        //     foreach($parrains as $parrain){
-        //         $count_same = 0;
-        //         $attributes_parrain = $parrain->getAttributes();
-        //         unset($attributes_parrain['id']);
-        //         unset($attributes_parrain['created_at']);
-        //         unset($attributes_parrain['updated_at']);
-        //         unset($attributes_parrain['prenom']);
-        //         unset($attributes_parrain['nom']);
-
-
-        //         foreach($attributes_etudiant as $keyEtA => $etudiantAttributs){
-        //             foreach($attributes_parrain as $keyPaA => $parrainAttributs){
-        //                 if($keyEtA == $keyPaA){
-        //                     if($etudiantAttributs == $parrainAttributs){
-        //                         $count_same += 1;
-        //                     }
-        //                 }
-        //             }
-        //         }
-
-
-        //         if($count_same > $best_parrain['count_same']){
-        //             $best_parrain = [
-        //                 'Prénom' => $parrain->prenom,
-        //                 'Nom' => $parrain->nom,
-        //                 'count_same' => $count_same
-        //             ];
-        //         }
-        //     }
-
-        //     // On vérifie si le parrain de l'étudiant en question n'est pas déjà mis autre part 
-        //     // et s'il est meilleur ou non
-        //     foreach($couples as $key => $couple){
-        //         if(($couple['Prénom Parrain'] == $best_parrain['Prénom']) && ($couple['Nom Parrain'] == $best_parrain['Nom'])){
-        //             if($couple['Compte Communs'] < $best_parrain['count_same']){
-        //                 $couples[$key]['Prénom Parrain'] = null;
-        //                 $couples[$key]['Nom Parrain'] = null;
-        //                 $couples[$key]['Compte Communs'] = 0;
-        //             }
-        //         }
-        //     }
-
-        //     $couples += ['couple' . $count_couples => [
-        //             'Prénom Etudiant' => $etudiant->prenom,
-        //             'Nom Etudiant' => $etudiant->nom,
-        //             'Prénom Parrain' => $best_parrain['Prénom'],
-        //             'Nom Parrain' => $best_parrain['Nom'],
-        //             'Compte Communs' => $best_parrain['count_same']
-        //         ]
-        //     ];
-
-        //     $count_couples++;
-        // }
-
-        // dd($couples);
     }
     
 
@@ -124,23 +50,24 @@ class MatchController extends Controller
         $count_couples = 0;
 
         foreach($etudiants as $etudiant){
+            $parrains = Parrain::all();
+            // dump($parrains);
             // dump("Etudiant " . $etudiant->nom . " Numéro " . $count_couples);
             $best_parrain_and_couples = $this->check_for_parrain($parrains, $etudiant, $couples);
 
             $best_parrain = $best_parrain_and_couples[0];
             $couples = $best_parrain_and_couples[1];
 
-            // dump($etudiant->nom . " best parrain:", $best_parrain);
-            // dump($etudiant->nom . " couples:", $couples);
+            // dump($etudiant->nom . " last couples:", $couples);
             
             foreach($couples as $key => $couple){
-                if($couple['Parrain'] == null){
+                if($couples[$key]['Parrain'] == null){
                     $couples[$key]['Parrain'] = $best_parrain['Parrain'];
                     $couples[$key]['Compte Communs'] = $best_parrain['count_same'];
                 }
             }
 
-            $couples += ['couple' . $count_couples => [
+            $couples += [$count_couples => [
                     'Etudiant' => $etudiant,
                     'Parrain' => $best_parrain['Parrain'],
                     'Compte Communs' => $best_parrain['count_same']
@@ -182,7 +109,7 @@ class MatchController extends Controller
                 }
             }
 
-            if($count_same > $best_parrain['count_same']){
+            if($count_same >= $best_parrain['count_same']){
                 $best_parrain = [
                     'Parrain' => $parrain,
                     'count_same' => $count_same
@@ -217,41 +144,51 @@ class MatchController extends Controller
     public function check_parrain_already_matched($best_parrain, $couples, $etudiant){
         $matched = false;
 
-        foreach($couples as $couple){
-            if($couple['Parrain'] == $best_parrain['Parrain']){
-                $parrains = Parrain::where("match", 0)->get();
-                if($couple['Compte Communs'] < $best_parrain['count_same']){
+        // dump("Parrain deja matche ? " . $best_parrain['Parrain']->match);
 
-                    // On set le parrain et le compte du couple précédent à 0
-                    foreach($couples as $key => $couple){
-                        if($couple['Parrain'] == $best_parrain['Parrain']){
-                            $couples[$key]['Parrain'] = null;
-                            $couples[$key]['Compte Communs'] = 0;
-                            $etudiant_check = $couple['Etudiant'];
+        if($best_parrain['Parrain']->match == 1){
+            // dump("here");
+            // dump($couples);
+            $parrains = Parrain::where("match", 0)->get();
+
+            foreach($couples as $key => $couple){
+                if(($couples[$key]['Parrain']->nom == $best_parrain['Parrain']->nom) && ($couples[$key]['Parrain']->prenom == $best_parrain['Parrain']->prenom)){
+                    // dump("Trouver dans le tableau couple");
+
+                    if($couple['Compte Communs'] < $best_parrain['count_same']){
+                        
+                        // On set le parrain et le compte du couple précédent à 0
+                        foreach($couples as $key => $couple){
+                            if(($couples[$key]['Parrain']->nom == $best_parrain['Parrain']->nom) && ($couples[$key]['Parrain']->prenom == $best_parrain['Parrain']->prenom)){
+                                $couples[$key]['Parrain'] = null;
+                                $couples[$key]['Compte Communs'] = 0;
+                                $etudiant_check = $couple['Etudiant'];
+                            }
                         }
+    
+                        // dump("Parrain deja matche mais moins bon");
+                        // dump($etudiant->nom . " best parrain: " . $best_parrain['Parrain']->nom);
+                        // dump($etudiant->nom . " best parrain: " . $best_parrain['count_same']);
+    
+                        // On rentre le nouveau couple dans le tableau
+                        $count_couples = count($couples);
+                        $couples += [$count_couples => [
+                                'Etudiant' => $etudiant,
+                                'Parrain' => $best_parrain['Parrain'],
+                                'Compte Communs' => $best_parrain['count_same']
+                            ]
+                        ];
+                        
+                        $matched = $this->check_for_parrain($parrains, $etudiant_check, $couples);
+                    }else{
+                        // dump("Parrain deja matche et meilleur");
+                        $matched = $this->check_for_parrain($parrains, $etudiant, $couples);
                     }
-
-                    // dump("check_parrain_already_matched");
-                    // dump($etudiant->nom . " best parrain:", $best_parrain);
-                    // dump($etudiant->nom . " couples:", $couples);
-
-                    // On rentre le nouveau couple dans le tableau
-                    $count_couples = count($couples);
-                    $couples += ['couple' . $count_couples => [
-                            'Etudiant' => $etudiant,
-                            'Parrain' => $best_parrain['Parrain'],
-                            'Compte Communs' => $best_parrain['count_same']
-                        ]
-                    ];
-                    
-                    $matched = $this->check_for_parrain($parrains, $etudiant_check, $couples);
-                }else{
-                    $best_parrain['count_same'] = 0;
-                    $best_parrain['Parrain'] = null;
-                    $matched = $this->check_for_parrain($parrains, $etudiant, $couples);
                 }
             }
         }
+
+        
         return $matched;
     }
 

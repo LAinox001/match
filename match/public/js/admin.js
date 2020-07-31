@@ -116688,8 +116688,7 @@ Vue.component('parrain-form', {
         filliere_id: '',
         plat_id: '',
         couleur_id: '',
-        animal_id: '',
-        match: ''
+        animal_id: ''
       }
     };
   }

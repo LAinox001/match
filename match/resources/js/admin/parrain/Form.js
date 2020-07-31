@@ -11,7 +11,6 @@ Vue.component('parrain-form', {
                 plat_id:  '' ,
                 couleur_id:  '' ,
                 animal_id:  '' ,
-                match: '',
                 
             }
         }
