@@ -9,6 +9,7 @@
                 <div class="card">
                     <div class="card-header">
                         <i class="fa fa-align-justify"></i> Liste des matchs
+                        <a href="{{ route('admin/match/download') }}" class="btn btn-primary float-right"><i class="fa fa-download"></i> Télécharger en Excel</a>
                     </div>
                     <div class="card-body" v-cloak>
                         <div class="card-block">

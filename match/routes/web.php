@@ -143,8 +143,9 @@ Route::middleware(['auth:' . config('admin-auth.defaults.guard'), 'admin'])->gro
     Route::prefix('admin')->namespace('Admin')->name('admin/')->group(static function() {
         Route::prefix('match')->name('match/')->group(static function() {
             Route::get('/index', 'MatchController@index')->name('index');
-            Route::post('/match', 'MatchController@match')->name('match');
+            Route::get('/match', 'MatchController@match')->name('match');
             Route::get('/matchup', 'MatchController@matchup')->name('matchup');
+            Route::get('/download', 'MatchController@download')->name('download');
         });
     });
 });

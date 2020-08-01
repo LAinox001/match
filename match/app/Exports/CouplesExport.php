@@ -1,26 +1,19 @@
 <?php
 
-namespace App\Http\Controllers\Admin;
+namespace App\Exports;
 
-use Exception;
 use App\Models\Parrain;
 use App\Models\Etudiant;
-use Illuminate\View\View;
-use Illuminate\Http\Response;
-use App\Exports\CouplesExport;
-use Illuminate\Routing\Redirector;
-use Illuminate\Support\Facades\DB;
-use App\Http\Controllers\Controller;
 use Maatwebsite\Excel\Facades\Excel;
-use Illuminate\Http\RedirectResponse;
-use Illuminate\Contracts\View\Factory;
-use Symfony\Component\HttpFoundation\Request;
-use Illuminate\Contracts\Routing\ResponseFactory;
-use Illuminate\Auth\Access\AuthorizationException;
+use Maatwebsite\Excel\Concerns\FromArray;
 
-class MatchController extends Controller
+class CouplesExport implements FromArray
 {
-    public function download(){
+    /**
+    * @return \Illuminate\Support\Array
+    */
+    public function array(): array
+    {
         $etudiants = Etudiant::all();
         $parrains = Parrain::all();
 
@@ -29,33 +22,23 @@ class MatchController extends Controller
             $parrain->save();
         }
 
-        $couples = $this->matchTogether($etudiants, $parrains);
+        $couples[-1]['Etudiant'] = 'Etudiant';
+        $couples[-1]['Parrain'] = 'Parrain';
+        $couples[-1]['Compte points communes'] = 'Compte points communes';
+
+        $couples += $this->matchTogether($etudiants, $parrains);
 
         foreach($couples as $key => $couple){
+            if($key == -1){
+                continue;
+            }
             $couples[$key]['Etudiant'] = $couples[$key]['Etudiant']->nom . " " . $couples[$key]['Etudiant']->prenom;
             $couples[$key]['Parrain'] = $couples[$key]['Parrain']->nom . " " . $couples[$key]['Parrain']->prenom;
         }
 
-        return Excel::download(new CouplesExport, 'couples.xlsx');
+
+        return $couples;
     }
-
-    public function matchup(){
-        $etudiants = Etudiant::all();
-        $parrains = Parrain::all();
-
-        foreach($parrains as $parrain){
-            $parrain->match = 0;
-            $parrain->save();
-        }
-
-        $couples = $this->matchTogether($etudiants, $parrains);
-
-        // return response()->json($couples);
-
-        // dd(count($couples));
-        return view('admin.match.match')->with(['couples' => $couples]);
-    }
-    
 
     public function matchTogether($etudiants, $parrains){
         
@@ -204,6 +187,4 @@ class MatchController extends Controller
         
         return $matched;
     }
-
-
 }

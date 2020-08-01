@@ -7,4 +7,4 @@ import './couleur';
 import './animal';
 import './etudiant';
 import './parrain';
-import './match/Form.js';
+import './match';

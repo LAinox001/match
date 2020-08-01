@@ -24,6 +24,11 @@ Vue.use(VModal, { dialog: true, dynamic: true, injectModalsContainer: true });
 Vue.use(VueQuillEditor);
 Vue.use(Notifications);
 Vue.use(VueCookie);
+Vue.component('match-table', require ('./match/Table'));
+
+const app = new Vue({
+    el: '#match',
+})
 
 new Vue({
     mixins: [Admin],
